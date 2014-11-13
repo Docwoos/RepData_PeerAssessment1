@@ -4,15 +4,43 @@ output:
   html_document:
     keep_md: true
 ---
-
+setwd("E:/Continuing Education/Data Scientist/Reproducible Research")
 
 ## Loading and preprocessing the data
 
+Load the packages needed for my version of the assignment.
 
+```{r}
+library(ggplot2)
+```
+
+Load the data and convert it into a table Data Frame for use with dplyr
+```{r}
+activityData<-read.csv("activity.csv")
+activityData<-tbl_df(activityData)
+```
 
 ## What is mean total number of steps taken per day?
 
+Subset the data, remove the NA's and group the data by date
+```{r}
+totalSteps<- tapply(activityData$steps, activityData$date, sum, na.rm = TRUE) 
+```
 
+Plot the histogram
+```{r}
+qplot(totalSteps, xlab = "Total steps", ylab = "Frequency", geom="histogram")
+```
+
+Mean number steps per day
+```{r}
+totalStepsMean<-mean(totalSteps)
+```
+
+Median number steps per day
+```{r}
+totalStepsMedian<-median(totalSteps)
+```
 
 ## What is the average daily activity pattern?
 
