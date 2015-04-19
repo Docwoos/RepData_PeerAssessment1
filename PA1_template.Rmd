@@ -4,6 +4,7 @@ output:
   html_document:
     keep_md: true
 ---
+
 setwd("E:/Continuing Education/Data Scientist/Reproducible Research")
 
 ## Loading and preprocessing the data
@@ -12,6 +13,7 @@ Load the packages needed for my version of the assignment.
 
 ```{r}
 library(ggplot2)
+library(dplyr)
 ```
 
 Load the data and convert it into a table Data Frame for use with dplyr
