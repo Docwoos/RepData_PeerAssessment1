@@ -1,8 +1,8 @@
 ---
-title: "Reproducible Research: Peer Assessment 1"
-output: 
-  html_document:
-    keep_md: true
+title: 'Reproducible Research: Peer Assessment 1'
+author: "Scott Woosley"
+date: "Friday, April 17, 2015"
+output: html_document
 ---
 
 setwd("E:/Continuing Education/Data Scientist/Reproducible Research")
@@ -11,45 +11,112 @@ setwd("E:/Continuing Education/Data Scientist/Reproducible Research")
 
 Load the packages needed for my version of the assignment.
 
-```{r}
+```{r, echo=TRUE}
 library(ggplot2)
 library(dplyr)
+library(lubridate)
 ```
 
 Load the data and convert it into a table Data Frame for use with dplyr
-```{r}
+```{r, echo=TRUE}
 activityData<-read.csv("activity.csv")
 activityData<-tbl_df(activityData)
 ```
 
-## What is mean total number of steps taken per day?
+## What is the mean total number of steps taken per day?
 
 Subset the data, remove the NA's and group the data by date
-```{r}
-totalSteps<- tapply(activityData$steps, activityData$date, sum, na.rm = TRUE) 
+```{r, echo=TRUE}
+totalSteps<- tapply(activityData$steps, activityData$date, sum, na.rm=TRUE) 
 ```
 
 Plot the histogram
-```{r}
+```{r, echo=TRUE}
 qplot(totalSteps, xlab = "Total steps", ylab = "Frequency", geom="histogram")
 ```
 
-Mean number steps per day
-```{r}
+
+```{r, echo=TRUE}
 totalStepsMean<-mean(totalSteps)
 ```
+Mean number steps per day: `r totalStepsMean`
 
-Median number steps per day
-```{r}
+
+```{r, echo=TRUE}
 totalStepsMedian<-median(totalSteps)
 ```
+Median number steps per day: `r totalStepsMedian`
+
 
 ## What is the average daily activity pattern?
+Make type "1" plot with the 5 minute interval
+```{r, echo=TRUE}
+averageSteps <- activityData %>%
+    filter(interval == 5) %>%
+    group_by(date)
+plot(averageSteps$steps, averageSteps$date, type="l", xlab = "Average Steps", ylab = "Date")
+title(main="Average Steps per Day for the 5 minute Interval", font.main=4)
 
+```
 
+Day 10 has the greatest average number of steps
 
 ## Imputing missing values
 
 
+```{r, echo=TRUE}
+rowCount<-nrow(filter(activityData, is.na(steps)))
+```
+There are `r rowCount` missing values in the dataset
+
+Create an average of daily averages and create a new data set with missing values substituted with the average
+
+```{r, echo=TRUE}
+dailyAverage <- activityData %>%
+filter(!is.na(steps)) %>%
+group_by(date) %>%
+summarize(average = mean(steps))
+averageAverage <- mean(dailyAverage$average)
+
+activityDataUpdate <- activityData %>%
+mutate(steps=ifelse(is.na(steps), averageAverage, steps))
+```
+
+Create new Histogram and new average and median results
+```{r, echo=TRUE}
+totalStepsUpdate<- tapply(activityDataUpdate$steps, activityData$date, sum, na.rm=TRUE)
+qplot(totalStepsUpdate, xlab = "Total steps", ylab = "Frequency", geom="histogram")
+totalStepsMean <- mean(totalStepsUpdate)
+totalStepsMedian <- median(totalStepsUpdate)
+
+```
+
+Mean number steps per day: `r totalStepsMean`
+
+Mean number steps per day: `r totalStepsMedian`
+
 
 ## Are there differences in activity patterns between weekdays and weekends?
+
+```{r}
+activityDataWeekday<-mutate(activityDataUpdate, day = wday(ydm(as.character(date))))
+activityDataWeekday <- mutate(activityDataWeekday, weekend = ifelse(day == c(1,7), "Weekend", "Weekday"))
+activityDataWeekday$weekend <- factor(activityDataWeekday$weekend)
+
+averageStepsWeekday <- activityDataWeekday %>%
+    filter(interval == 5, weekend == "Weekday") %>%
+    group_by(date)
+    
+averageStepsWeekend <- activityDataWeekday %>%
+    filter(interval == 5, weekend == "Weekend") %>%
+    group_by(date)
+
+
+par(mfrow=c(2,1))
+plot(averageStepsWeekday$steps, averageStepsWeekday$day, type="l", xlab = "Average Steps", ylab = "Date")
+title(main="Average Steps per Day for the 5 minute Interval on Weekdays", font.main=4)
+plot(averageStepsWeekend$steps, averageStepsWeekend$day, type="l", xlab = "Average Steps", ylab = "Date")
+title(main="Average Steps per Day for the 5 minute Interval on Weekends", font.main=4)
+```
+
+
